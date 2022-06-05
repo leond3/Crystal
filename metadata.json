@@ -1,0 +1,7 @@
+{
+  "name": "Crystal",
+  "creator": "leond3, Bhlues",
+  "description": "An extension for the Crystal Hollows in Hypixel SkyBlock",
+  "version": "0.0.1",
+  "entry": "index.js"
+}
