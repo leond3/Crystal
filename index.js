@@ -1,5 +1,4 @@
-register("chat", "onMessage")
-	.setCriteria("${message}");
+register("chat", "onMessage").setCriteria("${message}");
 	
 function onMessage(message, event) {
 	cancel(event);
