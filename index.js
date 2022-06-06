@@ -1,9 +1,27 @@
-import { onWorldLoad } from './Utilities/utils';
-import { Waypoint } from './Utilities/rendering';
+import { renderCrystalNucleus } from './Crystal/waypoints';
+import { Vector } from './Utilities/vector';
+import { getCHLocation, getLobby } from './Utilities/location';
+import { Waypoint } from './Utilities/render';
+
+var location = 'None';
+
+var NucleusWaypoint = true;
 
 register("renderWorld", onRenderWorld);
-register("loadWorld", onWorldLoad);
+register("tick", onTick);
 
 function onRenderWorld() {
-	Waypoint('Sexy dude', 0.5, 100.8, 0.5, 255, 0, 0, true, true);
+	if (location.length == 0) return;
+	// Waypoint(getLobby(), Player.getRenderX(), Player.getRenderY() + 2.2, Player.getRenderZ(), 255, 255, 0, true, false);
+
+	const playerPos = Vector(Player.getX(), Player.getY(), Player.getZ());
+	
+	if (location !== 'Crystal Nucleus') {
+		renderCrystalNucleus(playerPos);
+	}
+}
+
+function onTick(tick) {
+	if (tick % 20 != 0) return;
+	location = getCHLocation();
 }

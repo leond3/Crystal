@@ -1,4 +1,4 @@
-import { Vector } from './utils';
+import { Vector } from './vector';
 
 /**
  * Draws a waypoint in the world as specified in the parameters
