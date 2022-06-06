@@ -1,5 +1,19 @@
-module.exports.Vector = function(x, y, z) {
+export function Vector(x, y, z) {
     return new Vector(x, y, z);
+}
+
+let isInCrystalHollows = false;
+
+export function inCrystalHollows() {
+    return isInCrystalHollows;
+}
+
+export function onWorldLoad() {
+    new Thread(() => {
+        Thread.sleep(10000);
+        // scoreboard detection logic
+        isInCrystalHollows = false;
+    }).start();
 }
 
 class Vector {
