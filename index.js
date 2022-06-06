@@ -85,10 +85,6 @@ function onTick(tick) {
 			waypoints.set('corleone', createWaypoint(12, entity.getX(), entity.getY(), entity.getZ()));
 			continue;
 		}
-		// if (!waypoints.has(name)) {
-		// 	waypoints.set(name, createWaypoint(name, entity.getX(), entity.getY(), entity.getZ()));
-		// 	continue;
-		// }
 	}
 
 	if (location === 'khazad dum' && !waypoints.has('khazaddum')) {

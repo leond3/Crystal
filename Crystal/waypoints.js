@@ -34,5 +34,5 @@ export function createWaypoint(type, x, y, z) {
     if (type === 10) return Data('Goblin King', x, y + 10, z + 15, 255, 170, 0, true, true);
     if (type === 11) return Data('Goblin Queen', x, y + 15, z, 255, 170, 0, true, true);
     if (type === 12) return Data('Corleone', x, y + 5, z, 85, 255, 85, true, true);
-    return Data(`${type}`, x, y, z, 170, 0, 0, false, false);
+    return Data('Internal Error', x, y, z, 170, 0, 0, false, false);
 }
