@@ -14,7 +14,7 @@ export function getCHLocation() {
     const location = getLocation();
     const loc = location.toLowerCase().replace("'s", "").replace("'", "");
     for (var i = 0; i < locations.length; i++) {
-        if (loc.includes(locations[i])) return location;
+        if (loc.includes(locations[i])) return locations[i];
     }
     if (loc.includes('jungle') && !loc.endsWith('island')) return location;
     return '';
