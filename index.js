@@ -5,5 +5,5 @@ register("renderWorld", onRenderWorld);
 register("loadWorld", onWorldLoad);
 
 function onRenderWorld() {
-	Waypoint('Sexy dude', 0.5, 100.8, 0.5, 255, 0, 0, true);
+	Waypoint('Sexy dude', 0.5, 100.8, 0.5, 255, 0, 0, true, true);
 }
