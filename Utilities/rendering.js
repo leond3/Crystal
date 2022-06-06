@@ -8,8 +8,9 @@ module.exports.Waypoint = function(text, x, y, z, red, green, blue, background) 
 	const vec = waypointPos.subtract(playerPos);
 	const dist = vec.magnitude();
 	
-	const renderPos = dist > 10 ? playerPos.add(vec.normalise().multiply(10)) : waypointPos;
+	const renderPos = dist > 100 ? playerPos.add(vec.normalise().multiply(100)) : waypointPos;
+	const scale = dist > 108 ? 0.4 : 0.04 * (dist / 12 + 1);
 
-    Tessellator.drawString(text, renderPos.getX(), renderPos.getY(), renderPos.getZ(), (MathLib.clamp(red, 0, 255) << 16) + (MathLib.clamp(green, 0, 255) << 8) + (MathLib.clamp(blue, 0, 255)), background, dist > 9 ? 0.04 : 0.03 + 0.025 / (Math.sqrt(dist) + 1), false);
-	Tessellator.drawString(Math.round(dist) + 'm', renderPos.getX(), renderPos.getY() - 0.4, renderPos.getZ(), (MathLib.clamp(Math.round(red * 0.9), 0, 255) << 16) + (MathLib.clamp(Math.round(green * 0.9), 0, 255) << 8) + (MathLib.clamp(Math.round(blue * 0.9), 0, 255)), background, dist > 9 ? 0.03 : 0.0225 + 0.01875 / (Math.sqrt(dist) + 1), false);
+    Tessellator.drawString(text, renderPos.getX(), renderPos.getY(), renderPos.getZ(), (MathLib.clamp(red, 0, 255) << 16) + (MathLib.clamp(green, 0, 255) << 8) + (MathLib.clamp(blue, 0, 255)), background, scale, false);
+	Tessellator.drawString(Math.round(dist) + 'm', renderPos.getX(), renderPos.getY() - (scale * 9), renderPos.getZ(), (MathLib.clamp(Math.round(red * 0.9), 0, 255) << 16) + (MathLib.clamp(Math.round(green * 0.9), 0, 255) << 8) + (MathLib.clamp(Math.round(blue * 0.9), 0, 255)), background, scale / 1.5, false);
 }
