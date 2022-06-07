@@ -36,7 +36,6 @@ register("worldUnload", onUnloadWorld);
 register("messageSent", onSendMessage);
 
 function onRenderWorld() {
-	Waypoint('example', Player.getRenderX(), Player.getRenderY() + 2.5, Player.getRenderZ(), 255, 0, 0, false, false);
 	if (waypoints.size == 0) return;
 
 	for (let data of waypoints.values()) {
@@ -80,7 +79,7 @@ function onSecond() {
 
 	for (let entity of World.getAllEntities()) {
 		let name = ChatLib.removeFormatting(entity.getName()).toLowerCase().replace(/[^a-z ]/g, '').replace('lv ', '').replace(' kk', '').replace(' km', '').replace(' mm', '').trim();
-		if (name == 'professor robot' && !waypoints.has('Lost Precursor City')) {
+		if (name == 'professor robot' && !waypoints.has('Precursor City')) {
 			let data = crystalWaypoint(1, entity.getX(), entity.getY(), entity.getZ());
 			data.postWaypoint();
 			waypoints.set(data.getText(), data);
