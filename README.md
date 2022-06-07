@@ -36,7 +36,7 @@ A ChatTriggers module for the Crystal Hollows in SkyBlock on the Hypixel Network
 - Precursor City<br>
 </details>
 
-## Roadmap
+## Planned
 
 - [ ] GUI
   - This would allows users to toggle certain features
