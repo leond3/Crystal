@@ -29,6 +29,7 @@
 - Goblin King<br>
 - Goblin Queen<br>
 - Jungle Temple<br>
+- Key Guardian<br>
 - Khazad-dum<br>
 - Mines of Divan<br>
 - Odawa<br>

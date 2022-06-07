@@ -53,6 +53,7 @@ export function crystalWaypoint(type, x, y, z) {
     if (type === 11) return Data('Goblin Queen', x, y + 15, z, 255, 170, 0, true, true);
     if (type === 12) return Data('Corleone', x, y + 5, z, 85, 255, 85, true, true);
 	if (type === 13) return Data('Forger', x, y + 3, z, 85, 255, 85, true, true);
+    if (type === 14) return Data('Key Guardian', x, y + 3, z, 85, 255, 85, true, true);
     return Data('Internal Error', x, y, z, 170, 0, 0, false, false);
 }
 
@@ -70,5 +71,6 @@ export function fetchedWaypoint(name) {
     if (name == 'Goblin Queen') return Data('Goblin Queen', 0, 0, 0, 255, 170, 0, true, true);
     if (name == 'Corleone') return Data('Corleone', 0, 0, 0, 85, 255, 85, true, true);
 	if (name == 'Forger') return Data('Forger', 0, 0, 0, 85, 255, 85, true, true);
+    if (name == 'Key Guardian') return Data('Key Guardian', 0, 0, 0, 85, 255, 85, true, true);
     return Data('Internal Error', 0, 0, 0, 170, 0, 0, false, false);
 }

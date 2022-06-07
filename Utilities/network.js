@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import String from "./string";
+
 const BufferedReader = Java.type("java.io.BufferedReader");
 const InputStreamReader = Java.type("java.io.InputStreamReader");
 const URL = Java.type("java.net.URL");
@@ -29,9 +31,8 @@ export function post(url, output) {
 		conn.setRequestProperty("User-Agent", "Mozilla/5.0");
 		conn.setDoOutput(true);
 
-		const encoder = new TextEncoder();
 		let os = conn.getOutputStream();
-		os.write(encoder.encode(output));
+		os.write(new String(output).getBytes());
 		os.flush();
 		os.close();
 
