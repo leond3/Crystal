@@ -1,24 +1,19 @@
-/*
-Crystal (ChatTriggers module)
-Copyright (C) 2022 leond3
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
 import { getLobby } from "../Utilities/location";
 import { post } from "../Utilities/network";
 
+/**
+ * Builds a class containing all the data used for waypoint rendering
+ * @param {*} t Displayed text
+ * @param {*} x X position (coordinate)
+ * @param {*} y Y position (coordinate)
+ * @param {*} z Z position (coordinate)
+ * @param {*} r Red value (color)
+ * @param {*} g Green value (color)
+ * @param {*} b Blue value (color)
+ * @param {*} n Nametag box rendering
+ * @param {*} d Distance text rendering
+ * @returns WaypointData (class)
+ */
 export function Data(t, x, y, z, r, g, b, n, d) {
     return new WaypointData(t, x, y, z, r, g, b, n, d);
 }
@@ -71,6 +66,9 @@ class WaypointData {
     getDistance() {
         return this.d;
     }
+    /**
+     * Sends the waypoint's name and position in the lobby to the API
+     */
     postWaypoint() {
         post('https://forgemodapi.herokuapp.com/crystal/post', `name=${this.getText()}&x=${this.getX()}&y=${this.getY()}&z=${this.getZ()}&lobby=${getLobby()}`);
     }

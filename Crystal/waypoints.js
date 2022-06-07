@@ -1,27 +1,14 @@
-/*
-Crystal (ChatTriggers module)
-Copyright (C) 2022 leond3
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
 import Vector from "../Utilities/vector";
 import { Data } from "./data";
 
+// Entrances to the Crystal Nucleus
 const nucleusLocations = [new Vector(564.5, 121.5, 564.5), new Vector(564.5, 120.5, 462.5), new Vector(462.5, 120.5, 462.5), new Vector(462.5, 121.5, 564.5), new Vector(478.5, 64.5, 543.5), new Vector(478.5, 64.5, 484.5), new Vector(548.5, 64.5, 478.5), new Vector(539.5, 64.5, 540.5)];
 
-export function nucleusWaypoint(playerPos) {    
+/**
+ * Calculates the nearest entrance from the Player's position
+ * @returns Returns the waypoint data of the nearest entrance of the Crystal Nucleus
+ */
+export function nucleusWaypoint() {    
     const playerPos = new Vector(Player.getX(), Player.getY(), Player.getZ());
 
     var closest = 999;
@@ -39,6 +26,14 @@ export function nucleusWaypoint(playerPos) {
     return Data('Crystal Nucleus', vector.getX(), vector.getY(), vector.getZ(), 170, 0, 170, true, true);
 }
 
+/**
+ * Crystal Hollows waypoint formatting
+ * @param {*} type ID of the waypoint
+ * @param {*} x X position of the waypoint (coordinate)
+ * @param {*} y Y position of the waypoint (coordinate)
+ * @param {*} z Z position of the waypoint (coordinate)
+ * @returns Crystal Hollows waypoint data
+ */
 export function crystalWaypoint(type, x, y, z) {
     if (type === 1) return Data('Precursor City', x + 20, y + 20, z - 20, 85, 255, 255, true, true);
     if (type === 2) return Data('Mines of Divan', x - 33, y + 20, z - 3, 0, 170, 0, true, true);
@@ -57,6 +52,11 @@ export function crystalWaypoint(type, x, y, z) {
     return Data('Internal Error', x, y, z, 170, 0, 0, false, false);
 }
 
+/**
+ * Creates waypoint data based on the name fetched from the API
+ * @param {*} name The name of the waypoint
+ * @returns Crystal Hollows waypoint data
+ */
 export function fetchedWaypoint(name) {
     if (name == 'Precursor City') return Data('Precursor City', 0, 0, 0, 85, 255, 255, true, true);
     if (name == 'Mines of Divan') return Data('Mines of Divan', 0, 0, 0, 0, 170, 0, true, true);

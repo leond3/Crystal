@@ -1,34 +1,14 @@
-/*
-Crystal (ChatTriggers module)
-Copyright (C) 2022 leond3
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
 import { crystalWaypoint, fetchedWaypoint, nucleusWaypoint } from './Crystal/waypoints';
 import { getCHLocation, getLobby } from './Utilities/location';
 import { Waypoint } from './Utilities/render';
 
 var waypoints = new Map();
 
-var NucleusWaypoint = true;
-var HollowWaypoints = true;
+var NucleusWaypoint = true;// TASK: GUI Toggle for a future update
+var HollowWaypoints = true;// TASK: GUI Toggle for a future update
 
 var newLobby = true;
 var synchronized = false;
-
-var killThread = false;
 
 register("renderWorld", onRenderWorld);
 register("step", onSecond).setDelay(1);
@@ -39,6 +19,7 @@ function onRenderWorld() {
 	if (waypoints.size == 0) return;
 
 	for (let data of waypoints.values()) {
+		// Renders a waypoints according to its parameters
 		Waypoint(data.getText(), data.getX(), data.getY(), data.getZ(), data.getRed(), data.getGreen(), data.getBlue(), data.getBackground(), data.getDistance());
 	}
 }
@@ -49,17 +30,15 @@ function onUnloadWorld() {
 }
 
 function onSendMessage(message, event) {
-	if (message.startsWith('/ct load') || message.startsWith('/chattriggers load')) {
-		killThread = true;
-		syncWaypoints.interrupt();
-		synchronized = true;
-	}
+	// Should interrupt any ongoing threads
+	if (message.startsWith('/ct load') || message.startsWith('/chattriggers load')) syncWaypoints.interrupt();
 }
 
 function onSecond() {
 	const location = getCHLocation();
 	if (location.length == 0) return;
 
+	// Display the nearest entrance to the Crystal Nucleus
 	if (NucleusWaypoint && location !== 'crystal nucleus') {
 		waypoints.set('nucleus', nucleusWaypoint());
 	} else if (waypoints.has('nucleus')) {
@@ -68,15 +47,18 @@ function onSecond() {
 
 	if (!HollowWaypoints) return;
 
+	// Requests all waypoints in the lobby
 	if (newLobby) {
 		forceUpdateWaypoints();
 		newLobby = false;
 	}
+	// Requests new waypoints in the lobby
 	if (!synchronized) {
 		synchronized = true;
 		syncWaypoints.start();
 	}
 
+	// Waypoint location detection and creation, also sends the waypoint position to the API
 	for (let entity of World.getAllEntities()) {
 		let name = ChatLib.removeFormatting(entity.getName()).toLowerCase().replace(/[^a-z ]/g, '').replace('lv ', '').replace(' kk', '').replace(' km', '').replace(' mm', '').trim();
 		if (name == 'professor robot' && !waypoints.has('Precursor City')) {
@@ -201,19 +183,21 @@ const BufferedReader = Java.type("java.io.BufferedReader");
 const InputStreamReader = Java.type("java.io.InputStreamReader");
 const URL = Java.type("java.net.URL");
 
+// Requests new waypoints in the lobby
 const syncWaypoints = new Thread(() => {
 	try {
 		const lobby = getLobby();
 		while (getCHLocation().length !== 0) {
-			if (killThread) return;
-
 			let conn = new URL('https://forgemodapi.herokuapp.com/crystal/get?lobby=' + lobby).openConnection();
 			conn.setRequestMethod("GET");
+			// Uses long pulling to receive real-time updates
 			conn.setConnectTimeout(30000);
 			conn.setReadTimeout(30000);
-			conn.setRequestProperty("User-Agent", "Mozilla/5.0");
+			// Defines the User Agent: https://github.com/ChatTriggers/ChatTriggers/blob/master/src/main/kotlin/com/chattriggers/ctjs/CTJS.kt#L90
+			conn.setRequestProperty("User-Agent", "Mozilla/5.0 (ChatTriggers)");
 			let json = null;
 			if (conn.getResponseCode() >= 200 && conn.getResponseCode() < 300) {
+				// Reads the data (JSON formatted) of the API
 				let input = new BufferedReader(new InputStreamReader(conn.getInputStream()))
 				let line;
 				let response = '';
@@ -222,7 +206,7 @@ const syncWaypoints = new Thread(() => {
 				json = JSON.parse(response);
 			}
 			if (json == null || typeof json?.status !== 'number' || json['status'] !== 200 || typeof json['waypoints'] !== 'object') return;
-
+			// Create shared waypoints
 			fetchWaypoints(json);
 		}
 	} catch (err) {} finally {
@@ -230,17 +214,22 @@ const syncWaypoints = new Thread(() => {
 	}
 });
 
+/**
+ * Requests all waypoints in the lobby
+ */
 function forceUpdateWaypoints() {
 	try {
 		new Thread(() => {
 			try {
 				let conn = new URL('https://forgemodapi.herokuapp.com/crystal/force?lobby=' + getLobby()).openConnection();
 				conn.setRequestMethod("GET");
-				conn.setConnectTimeout(30000);
-				conn.setReadTimeout(30000);
-				conn.setRequestProperty("User-Agent", "Mozilla/5.0");
+				conn.setConnectTimeout(3000);
+				conn.setReadTimeout(3000);
+				// Defines the User Agent: https://github.com/ChatTriggers/ChatTriggers/blob/master/src/main/kotlin/com/chattriggers/ctjs/CTJS.kt#L90
+				conn.setRequestProperty("User-Agent", "Mozilla/5.0 (ChatTriggers)");
 				let json = null;
 				if (conn.getResponseCode() >= 200 && conn.getResponseCode() < 300) {
+					// Reads the data (JSON formatted) of the API
 					let input = new BufferedReader(new InputStreamReader(conn.getInputStream()))
 					let line;
 					let response = '';
@@ -249,7 +238,7 @@ function forceUpdateWaypoints() {
 					json = JSON.parse(response);
 				}
 				if (json == null || typeof json?.status !== 'number' || json['status'] !== 200 || typeof json['waypoints'] !== 'object') return;
-	
+				// Create shared waypoints
 				fetchWaypoints(json);
 			} catch (err) {}
 		}).start();
@@ -258,16 +247,20 @@ function forceUpdateWaypoints() {
 
 function fetchWaypoints(json) {
 	Object.keys(json['waypoints']).forEach(waypoint => {
+		// Name of the waypoint
 		let name = waypoint;
 		if (typeof name === 'string') {
+			// Position of the waypoint
 			let x = Number(json['waypoints'][name]['x']);
 			let y = Number(json['waypoints'][name]['y']);
 			let z = Number(json['waypoints'][name]['z']);
 			if (typeof x === 'number' && typeof y === 'number' && typeof z === 'number') {
+				// Creating the waypoint
 				let data = fetchedWaypoint(name);
 				data.setX(x);
 				data.setY(y);
 				data.setZ(z);
+				// Adds the waypoint to the render list, unless it is already on there
 				if (data.getText() !== 'Internal Error' && !waypoints.has(data.getText())) waypoints.set(data.getText(), data);
 			}
 		}

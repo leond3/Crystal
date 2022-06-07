@@ -1,41 +1,33 @@
-/*
-Crystal (ChatTriggers module)
-Copyright (C) 2022 leond3
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
 import String from "./string";
 
 const BufferedReader = Java.type("java.io.BufferedReader");
 const InputStreamReader = Java.type("java.io.InputStreamReader");
 const URL = Java.type("java.net.URL");
 
+/**
+ * Sends a string of text to the API
+ * @param {*} url URL of the API
+ * @param {*} output The string of text in mapping format
+ * @returns Any response from the API in JSON format
+ */
 export function post(url, output) {
     try {
 		let conn = new URL(url).openConnection();
 		conn.setRequestMethod("POST");
+		conn.setDoOutput(true);
 		conn.setConnectTimeout(3000);
 		conn.setReadTimeout(3000);
-		conn.setRequestProperty("User-Agent", "Mozilla/5.0");
-		conn.setDoOutput(true);
+		// Defines the User Agent: https://github.com/ChatTriggers/ChatTriggers/blob/master/src/main/kotlin/com/chattriggers/ctjs/CTJS.kt#L90
+		conn.setRequestProperty("User-Agent", "Mozilla/5.0 (ChatTriggers)");
 
+		// Creates an array of bytes (and then sends them over the network (=internet) as packets)
 		let os = conn.getOutputStream();
 		os.write(new String(output).getBytes());
 		os.flush();
 		os.close();
 
+		// Awaits if the API returns some JSON data (confirmation)
+		// This section is unused, but may be used in a future update
 		if (conn.getResponseCode() >= 200 && conn.getResponseCode() < 300) {
 			let input = new BufferedReader(new InputStreamReader(conn.getInputStream()))
 			let line;
