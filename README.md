@@ -7,8 +7,6 @@
     <img alt="license" src="https://img.shields.io/github/license/leond3/Crystal?color=5555FF&style=flat-square" />
   </a>
 </p>
-***
-
 A ChatTriggers module for the Crystal Hollows in SkyBlock on the Hypixel Network.
 
 ## Requirements
