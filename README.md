@@ -43,4 +43,4 @@
 
 ## License
 
-Crystal is licensed under the [GNU General Public License v3.0](https://github.com/leond3/Crystal/blob/main/LICENSE).
+Crystal is licensed under the [MIT License](https://mit-license.org/).
