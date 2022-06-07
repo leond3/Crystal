@@ -1,5 +1,5 @@
 import { getLobby } from "../Utilities/location";
-import { POST } from "../Utilities/network";
+import { post } from "../Utilities/network";
 
 export function Data(t, x, y, z, r, g, b, n, d) {
     return new WaypointData(t, x, y, z, r, g, b, n, d);
@@ -8,9 +8,9 @@ export function Data(t, x, y, z, r, g, b, n, d) {
 class WaypointData {
 	constructor(T, X, Y, Z, R, G, B, N, D) {
         this.t = T;
-		this.x = X;
-        this.y = Y;
-        this.z = Z;
+		this.setX(X);
+        this.setY(Y);
+        this.setZ(Z);
         this.r = R;
         this.g = G;
         this.b = B;
@@ -20,12 +20,21 @@ class WaypointData {
     getText() {
 		return this.t;
 	}
+    setX(X) {
+        this.x = X;
+    }
 	getX() {
 		return this.x;
 	}
+    setY(Y) {
+        this.y = Y;
+    }
 	getY() {
 		return this.y;
 	}
+    setZ(Z) {
+        this.z = Z;
+    }
 	getZ() {
 		return this.z;
 	}
@@ -45,6 +54,6 @@ class WaypointData {
         return this.d;
     }
     postWaypoint() {
-        POST('https://forgemodapi.herokuapp.com/crystal/post', `name=${this.getText()}&x=${this.getX()}&y=${this.getY()}&z=${this.getZ()}&lobby=${getLobby()}`);
+        post('https://forgemodapi.herokuapp.com/crystal/post', `name=${this.getText()}&x=${this.getX()}&y=${this.getY()}&z=${this.getZ()}&lobby=${getLobby()}`);
     }
 }

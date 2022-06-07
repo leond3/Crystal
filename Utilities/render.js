@@ -1,4 +1,4 @@
-import { Vector } from './vector';
+import Vector from './vector';
 
 /**
  * Draws a waypoint in the world as specified in the parameters
@@ -17,8 +17,8 @@ import { Vector } from './vector';
 export function Waypoint(text, x, y, z, red, green, blue, background, distance) {
 	if (typeof x !== 'number' || typeof y !== 'number' || typeof z !== 'number' || typeof red !== 'number' || typeof green !== 'number' || typeof blue !== 'number' || typeof background !== 'boolean' || typeof distance !== 'boolean') return;
 
-	const playerPos = Vector(Player.getRenderX(), Player.getRenderY() + 1.9, Player.getRenderZ());
-	const waypointPos = Vector(x, y, z);
+	const playerPos = new Vector(Player.getRenderX(), Player.getRenderY() + 1.9, Player.getRenderZ());
+	const waypointPos = new Vector(x, y, z);
 	const vec = waypointPos.subtract(playerPos);
 	const dist = vec.magnitude();
 	

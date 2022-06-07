@@ -1,8 +1,4 @@
-export function Vector(x, y, z) {
-    return new Vector(x, y, z);
-}
-
-class Vector {
+export default class Vector {
 	constructor(x, y, z) {
 		this.setX(x);
 		this.setY(y);

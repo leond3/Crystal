@@ -1,6 +1,5 @@
-import { crystalWaypoint, nucleusWaypoint } from './Crystal/waypoints';
-import { getCHLocation } from './Utilities/location';
-import { getSynchronized, syncWaypoints } from './Utilities/network';
+import { crystalWaypoint, fetchedWaypoint, nucleusWaypoint } from './Crystal/waypoints';
+import { getCHLocation, getLobby } from './Utilities/location';
 import { Waypoint } from './Utilities/render';
 
 var waypoints = new Map();
@@ -8,11 +7,18 @@ var waypoints = new Map();
 var NucleusWaypoint = true;
 var HollowWaypoints = true;
 
+var newLobby = true;
+var synchronized = false;
+
+var killThread = false;
+
 register("renderWorld", onRenderWorld);
 register("step", onSecond).setDelay(1);
 register("worldUnload", onUnloadWorld);
+register("messageSent", onSendMessage);
 
 function onRenderWorld() {
+	Waypoint('example', Player.getRenderX(), Player.getRenderY() + 2.5, Player.getRenderZ(), 255, 0, 0, false, false);
 	if (waypoints.size == 0) return;
 
 	for (let data of waypoints.values()) {
@@ -22,15 +28,20 @@ function onRenderWorld() {
 
 function onUnloadWorld() {
 	waypoints.clear();
+	newLobby = true;
+}
+
+function onSendMessage(message, event) {
+	if (message.startsWith('/ct load') || message.startsWith('/chattriggers load')) {
+		killThread = true;
+		syncWaypoints.interrupt();
+		synchronized = true;
+	}
 }
 
 function onSecond() {
 	const location = getCHLocation();
 	if (location.length == 0) return;
-
-	if (!getSynchronized()) {
-		syncWaypoints();
-	}
 
 	if (NucleusWaypoint && location !== 'crystal nucleus') {
 		waypoints.set('nucleus', nucleusWaypoint());
@@ -39,6 +50,15 @@ function onSecond() {
 	}
 
 	if (!HollowWaypoints) return;
+
+	if (newLobby) {
+		forceUpdateWaypoints();
+		newLobby = false;
+	}
+	if (!synchronized) {
+		synchronized = true;
+		syncWaypoints.start();
+	}
 
 	for (let entity of World.getAllEntities()) {
 		let name = ChatLib.removeFormatting(entity.getName()).toLowerCase().replace(/[^a-z ]/g, '').replace('lv ', '').replace(' kk', '').replace(' km', '').replace(' mm', '').trim();
@@ -152,4 +172,81 @@ function onSecond() {
 			}
 		}).start();
 	}
+}
+
+const BufferedReader = Java.type("java.io.BufferedReader");
+const InputStreamReader = Java.type("java.io.InputStreamReader");
+const URL = Java.type("java.net.URL");
+
+const syncWaypoints = new Thread(() => {
+	try {
+		const lobby = getLobby();
+		while (getCHLocation().length !== 0) {
+			if (killThread) return;
+
+			let conn = new URL('https://forgemodapi.herokuapp.com/crystal/get?lobby=' + lobby).openConnection();
+			conn.setRequestMethod("GET");
+			conn.setConnectTimeout(30000);
+			conn.setReadTimeout(30000);
+			conn.setRequestProperty("User-Agent", "Mozilla/5.0");
+			let json = null;
+			if (conn.getResponseCode() >= 200 && conn.getResponseCode() < 300) {
+				let input = new BufferedReader(new InputStreamReader(conn.getInputStream()))
+				let line;
+				let response = '';
+				while ((line = input.readLine()) != null) response += line;
+				input.close();
+				json = JSON.parse(response);
+			}
+			if (json == null || typeof json?.status !== 'number' || json['status'] !== 200 || typeof json['waypoints'] !== 'object') return;
+
+			fetchWaypoints(json);
+		}
+	} catch (err) {} finally {
+		synchronized = false;
+	}
+});
+
+function forceUpdateWaypoints() {
+	try {
+		new Thread(() => {
+			try {
+				let conn = new URL('https://forgemodapi.herokuapp.com/crystal/force?lobby=' + getLobby()).openConnection();
+				conn.setRequestMethod("GET");
+				conn.setConnectTimeout(30000);
+				conn.setReadTimeout(30000);
+				conn.setRequestProperty("User-Agent", "Mozilla/5.0");
+				let json = null;
+				if (conn.getResponseCode() >= 200 && conn.getResponseCode() < 300) {
+					let input = new BufferedReader(new InputStreamReader(conn.getInputStream()))
+					let line;
+					let response = '';
+					while ((line = input.readLine()) != null) response += line;
+					input.close();
+					json = JSON.parse(response);
+				}
+				if (json == null || typeof json?.status !== 'number' || json['status'] !== 200 || typeof json['waypoints'] !== 'object') return;
+	
+				fetchWaypoints(json);
+			} catch (err) {}
+		}).start();
+	} catch (err) {}
+}
+
+function fetchWaypoints(json) {
+	Object.keys(json['waypoints']).forEach(waypoint => {
+		let name = waypoint;
+		if (typeof name === 'string') {
+			let x = Number(json['waypoints'][name]['x']);
+			let y = Number(json['waypoints'][name]['y']);
+			let z = Number(json['waypoints'][name]['z']);
+			if (typeof x === 'number' && typeof y === 'number' && typeof z === 'number') {
+				let data = fetchedWaypoint(name);
+				data.setX(x);
+				data.setY(y);
+				data.setZ(z);
+				if (data.getText() !== 'Internal Error' && !waypoints.has(data.getText())) waypoints.set(data.getText(), data);
+			}
+		}
+	});
 }
