@@ -39,7 +39,7 @@
 ## Planned
 
 - [ ] GUI
-  - This would allows users to toggle certain features
+  - Adding toggles for certain features
 
 ## License
 
