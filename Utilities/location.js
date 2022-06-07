@@ -4,7 +4,7 @@ export function getLobby() {
     const title = ChatLib.removeFormatting(Scoreboard.getScoreboardTitle()).replace(/[^A-Z]/g, "");
     if (title.startsWith('SKYBLOCK')) {
         const text = ChatLib.removeFormatting(Scoreboard.getLineByIndex(Scoreboard.getLines().length - 1).getName());
-        const lobby = text.trim().split(' ').pop();
+        const lobby = text.trim().split(' ').pop().replace(/[^A-z0-9]/g, "");
         if (lobby.toLowerCase().startsWith('m')) return lobby;
     }
     return '';

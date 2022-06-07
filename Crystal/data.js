@@ -1,3 +1,6 @@
+import { getLobby } from "../Utilities/location";
+import { POST } from "../Utilities/network";
+
 export function Data(t, x, y, z, r, g, b, n, d) {
     return new WaypointData(t, x, y, z, r, g, b, n, d);
 }
@@ -40,5 +43,8 @@ class WaypointData {
     }
     getDistance() {
         return this.d;
+    }
+    postWaypoint() {
+        POST('https://forgemodapi.herokuapp.com/crystal/post', `name=${this.getText()}&x=${this.getX()}&y=${this.getY()}&z=${this.getZ()}&lobby=${getLobby()}`);
     }
 }
