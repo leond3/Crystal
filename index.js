@@ -108,6 +108,12 @@ function onSecond() {
 			waypoints.set(data.getText(), data);
 			continue;
 		}
+		if (name == 'forger' && !waypoints.has('Forger')) {
+			let data = crystalWaypoint(13, entity.getX(), entity.getY(), entity.getZ());
+			data.postWaypoint();
+			waypoints.set(data.getText(), data);
+			continue;
+		}
 	}
 
 	if (location === 'khazad dum' && !waypoints.has('Khazad-dum')) {

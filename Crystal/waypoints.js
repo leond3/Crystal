@@ -22,7 +22,7 @@ export function nucleusWaypoint(playerPos) {
 }
 
 export function crystalWaypoint(type, x, y, z) {
-    if (type === 1) return Data('Lost Precursor City', x + 20, y + 20, z - 20, 85, 255, 255, true, true);
+    if (type === 1) return Data('Precursor City', x + 20, y + 20, z - 20, 85, 255, 255, true, true);
     if (type === 2) return Data('Mines of Divan', x - 33, y + 20, z - 3, 0, 170, 0, true, true);
     if (type === 3) return Data('Mines of Divan', x + 3, y + 20, z - 33, 0, 170, 0, true, true);
     if (type === 4) return Data('Mines of Divan', x + 33, y + 20, z + 3, 0, 170, 0, true, true);
@@ -34,5 +34,6 @@ export function crystalWaypoint(type, x, y, z) {
     if (type === 10) return Data('Goblin King', x, y + 10, z + 15, 255, 170, 0, true, true);
     if (type === 11) return Data('Goblin Queen', x, y + 15, z, 255, 170, 0, true, true);
     if (type === 12) return Data('Corleone', x, y + 5, z, 85, 255, 85, true, true);
+	if (type === 13) return Data('Forger', x, y + 3, z, 85, 255, 85, true, true);
     return Data('Internal Error', x, y, z, 170, 0, 0, false, false);
 }
