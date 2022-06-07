@@ -19,25 +19,23 @@ Download ChatTriggers by heading over to their [official ChatTriggers website]()
 ## Features
 
 <details>
-<summary>Crystal Hollows</summary>
-### Crystal Hollows
-- Fully automatic waypoint detection
-- Waypoints are synchronized across clients and lobbies
+<summary><b>Crystal Hollows</b></summary>
+- Fully automatic waypoint detection<br>
+- Waypoints are synchronized across clients and lobbies<br>
 </details>
 <details>
-<summary>Waypoints</summary>
-### Waypoints
-- Corleone
-- Crystal Nucleus
-- Fairy Grotto
-- Forger
-- Goblin King
-- Goblin Queen
-- Jungle Temple
-- Khazad-dum
-- Mines of Divan
-- Odawa
-- Precursor City
+<summary><b>Waypoints</b></summary>
+- Corleone<br>
+- Crystal Nucleus<br>
+- Fairy Grotto<br>
+- Forger<br>
+- Goblin King<br>
+- Goblin Queen<br>
+- Jungle Temple<br>
+- Khazad-dum<br>
+- Mines of Divan<br>
+- Odawa<br>
+- Precursor City<br>
 </details>
 
 ## Roadmap
