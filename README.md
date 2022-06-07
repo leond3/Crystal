@@ -1,6 +1,6 @@
 # Crystal
 <p>A ChatTriggers module for the Crystal Hollows in SkyBlock on the Hypixel Network.
-  <a align="right" href="https://github.com/leond3/Crystal/releases" target="_blank">
+  <a align="right" href="https://github.com/leond3/Crystal/releases/latest" target="_blank">
     <img align="right" alt="downloads" src="https://img.shields.io/github/v/release/leond3/Crystal?color=00AA00&style=flat-square" />
   </a>
   <a align="right" href="https://github.com/leond3/Crystal/blob/main/LICENSE" target="_blank">
