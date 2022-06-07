@@ -19,7 +19,7 @@ Download ChatTriggers by heading over to their [official ChatTriggers website]()
 ## Features
 
 <details>
-<summary><b>Crystal Hollows</b></summary>
+<summary><b>General</b></summary>
 - Fully automatic waypoint detection<br>
 - Waypoints are synchronized across clients and lobbies<br>
 </details>
