@@ -42,7 +42,7 @@
 <details>
 <summary><b>Commands</b></summary>
 <br /><ul>
-  <li>/crystal</li>
+  <li><b>/crystal</b></li>
   Opens the Crystal Settings GUI<br>
   <i>Aliases:<br>
   <ul>
