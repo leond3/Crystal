@@ -44,10 +44,10 @@
 <br /><ul>
   <li><b>/crystal</b></li>
   Opens the Crystal Settings GUI<br>
-  <i>Aliases:<br>
+  <i>Aliases:</i><br>
   <ul>
     <li>/cr</li>
-  </ul></i>
+  </ul>
 </ul>
 </details>
 
