@@ -17,35 +17,39 @@
 
 <details>
 <summary><b>General</b></summary>
-- Fully automatic waypoint detection<br>
-- Waypoints are synchronized across clients and lobbies<br>
+<ul>
+  <li>Automatically places and displays waypoints</li>
+  <li>Waypoints are synchronized across clients and lobbies</li>
+</ul>
 </details>
 <details>
 <summary><b>Waypoints</b></summary>
-- Corleone<br>
-- Crystal Nucleus<br>
-- Fairy Grotto<br>
-- Forger<br>
-- Goblin King<br>
-- Goblin Queen<br>
-- Jungle Temple<br>
-- Key Guardian<br>
-- Khazad-dum<br>
-- Mines of Divan<br>
-- Odawa<br>
-- Precursor City<br>
+<ul>
+  <li>Corleone</li>
+  <li>Crystal Nucleus</li>
+  <li>Fairy Grotto</li>
+  <li>Forger</li>
+  <li>Goblin King</li>
+  <li>Goblin Queen</li>
+  <li>Jungle Temple</li>
+  <li>Key Guardian</li>
+  <li>Khazad-dum</li>
+  <li>Mines of Divan</li>
+  <li>Odawa</li>
+  <li>Precursor City</li>
+</ul>
 </details>
 <details>
 <summary><b>Commands</b></summary>
 - /crystal<br>
-  Opens the Crystal Settings GUI
-  Aliases:
+  Opens the Crystal Settings GUI<br>
+  Aliases:<br>
   - /cr<br>
 </details>
 
-<!-- ## Planned
+## Planned
 
-- [ ] GUI
+<!-- - [ ] GUI
   - Adding toggles for certain features -->
 
 ## License
