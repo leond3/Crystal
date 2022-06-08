@@ -30,7 +30,9 @@ function onUnloadWorld() {
 }
 
 function onLoadWorld() {
-	// Display welcome message
+	/*
+	 Display welcome message
+	*/
 	/*
 	if (FIRST_TIME_INSTALL_PLACEHOLDER) {
 		const text = [
@@ -48,7 +50,9 @@ function onLoadWorld() {
 		FIRST_TIME_INSTALL_PLACEHOLDER = false;
 	}
 	*/
-	// Update checker
+	/*
+	 Update checker
+	*/
 	if (!Settings.UpdateChecker) return;
 	if (typeof usingLatestVersion === 'undefined') {
 		new Thread(() => {
