@@ -49,6 +49,7 @@ function onLoadWorld() {
 	}
 	*/
 	// Update checker
+	if (!Settings.UpdateChecker) return;
 	if (typeof usingLatestVersion === 'undefined') {
 		new Thread(() => {
 			const version = JSON.parse(FileLib.read('Crystal', 'metadata.json'))?.version;

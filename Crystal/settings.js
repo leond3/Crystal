@@ -22,6 +22,14 @@ class Settings {
         subcategory: "Waypoints"
     })
     HollowWaypoints = true;
+
+    @SwitchProperty({
+        name: "Update Checker",
+        description: "Upon startup check if the latest version is installed",
+        category: "Updates",
+        subcategory: "Github"
+    })
+    UpdateChecker = true;
 }
 
 export default new Settings();
