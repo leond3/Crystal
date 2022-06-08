@@ -2,18 +2,17 @@ import { crystalWaypoint, fetchedWaypoint, nucleusWaypoint } from './Crystal/way
 import { getCHLocation, getLobby } from './Utilities/location';
 import { Waypoint } from './Utilities/render';
 
+import Settings from './Crystal/settings';
+
 var waypoints = new Map();
 
-var NucleusWaypoint = true;// TASK: GUI Toggle for a future update
-var HollowWaypoints = true;// TASK: GUI Toggle for a future update
-
-var newLobby = true;
 var synchronized = false;
 
-register("renderWorld", onRenderWorld);
-register("step", onSecond).setDelay(1);
-register("worldUnload", onUnloadWorld);
-register("messageSent", onSendMessage);
+register('renderWorld', onRenderWorld);
+register('step', onSecond).setDelay(1);
+register('worldUnload', onUnloadWorld);
+register('messageSent', onSendMessage);
+register('command', () => Settings.openGUI()).setName('crystal').setAliases('cr');
 
 function onRenderWorld() {
 	if (waypoints.size == 0) return;
@@ -26,12 +25,11 @@ function onRenderWorld() {
 
 function onUnloadWorld() {
 	waypoints.clear();
-	newLobby = true;
 }
 
 function onSendMessage(message, event) {
 	// Should interrupt any ongoing threads
-	if (message.startsWith('/ct load') || message.startsWith('/chattriggers load')) syncWaypoints.interrupt();
+	if (message.startsWith('/ct load') || message.startsWith('/chattriggers load') || message.startsWith('/ct reload') || message.startsWith('/chattriggers reload')) syncWaypoints.interrupt();
 }
 
 function onSecond() {
@@ -39,19 +37,18 @@ function onSecond() {
 	if (location.length == 0) return;
 
 	// Display the nearest entrance to the Crystal Nucleus
-	if (NucleusWaypoint && location !== 'crystal nucleus') {
+	if (Settings.NucleusWaypoint && location !== 'crystal nucleus') {
 		waypoints.set('nucleus', nucleusWaypoint());
 	} else if (waypoints.has('nucleus')) {
 		waypoints.delete('nucleus');
 	}
 
-	if (!HollowWaypoints) return;
-
-	// Requests all waypoints in the lobby
-	if (newLobby) {
-		forceUpdateWaypoints();
-		newLobby = false;
+	// Toggle for Crystal Hollows waypoints
+	if (!Settings.HollowWaypoints) {
+		if (waypoints.size > Settings.NucleusWaypoint ? 1 : 0) waypoints.clear();
+		return;
 	}
+
 	// Requests new waypoints in the lobby
 	if (!synchronized) {
 		synchronized = true;
@@ -187,6 +184,9 @@ const URL = Java.type("java.net.URL");
 const syncWaypoints = new Thread(() => {
 	try {
 		const lobby = getLobby();
+		// Requests all waypoints in the lobby
+		forceUpdateWaypoints(lobby);
+		// Fetches newly created waypoints in the lobby
 		while (getCHLocation().length !== 0) {
 			let conn = new URL('https://forgemodapi.herokuapp.com/crystal/get?lobby=' + lobby).openConnection();
 			conn.setRequestMethod("GET");
@@ -197,15 +197,16 @@ const syncWaypoints = new Thread(() => {
 			conn.setRequestProperty("User-Agent", "Mozilla/5.0 (ChatTriggers)");
 			let json = null;
 			if (conn.getResponseCode() >= 200 && conn.getResponseCode() < 300) {
-				// Reads the data (JSON formatted) of the API
+				// Reads the data (JSON formatted) from the API
 				let input = new BufferedReader(new InputStreamReader(conn.getInputStream()))
 				let line;
 				let response = '';
 				while ((line = input.readLine()) != null) response += line;
 				input.close();
-				json = JSON.parse(response);
+				json = response.length !== 0 ? JSON.parse(response) : null;
 			}
-			if (json == null || typeof json?.status !== 'number' || json['status'] !== 200 || typeof json['waypoints'] !== 'object') return;
+			if (!Settings.HollowWaypoints) break;
+			if (json == null || typeof json?.status !== 'number' || json['status'] !== 200 || typeof json['waypoints'] !== 'object') continue;
 			// Create shared waypoints
 			fetchWaypoints(json);
 		}
@@ -217,31 +218,27 @@ const syncWaypoints = new Thread(() => {
 /**
  * Requests all waypoints in the lobby
  */
-function forceUpdateWaypoints() {
+function forceUpdateWaypoints(lobby) {
 	try {
-		new Thread(() => {
-			try {
-				let conn = new URL('https://forgemodapi.herokuapp.com/crystal/force?lobby=' + getLobby()).openConnection();
-				conn.setRequestMethod("GET");
-				conn.setConnectTimeout(3000);
-				conn.setReadTimeout(3000);
-				// Defines the User Agent: https://github.com/ChatTriggers/ChatTriggers/blob/master/src/main/kotlin/com/chattriggers/ctjs/CTJS.kt#L90
-				conn.setRequestProperty("User-Agent", "Mozilla/5.0 (ChatTriggers)");
-				let json = null;
-				if (conn.getResponseCode() >= 200 && conn.getResponseCode() < 300) {
-					// Reads the data (JSON formatted) of the API
-					let input = new BufferedReader(new InputStreamReader(conn.getInputStream()))
-					let line;
-					let response = '';
-					while ((line = input.readLine()) != null) response += line;
-					input.close();
-					json = JSON.parse(response);
-				}
-				if (json == null || typeof json?.status !== 'number' || json['status'] !== 200 || typeof json['waypoints'] !== 'object') return;
-				// Create shared waypoints
-				fetchWaypoints(json);
-			} catch (err) {}
-		}).start();
+		let conn = new URL('https://forgemodapi.herokuapp.com/crystal/force?lobby=' + lobby).openConnection();
+		conn.setRequestMethod("GET");
+		conn.setConnectTimeout(3000);
+		conn.setReadTimeout(3000);
+		// Defines the User Agent: https://github.com/ChatTriggers/ChatTriggers/blob/master/src/main/kotlin/com/chattriggers/ctjs/CTJS.kt#L90
+		conn.setRequestProperty("User-Agent", "Mozilla/5.0 (ChatTriggers)");
+		let json = null;
+		if (conn.getResponseCode() >= 200 && conn.getResponseCode() < 300) {
+			// Reads the data (JSON formatted) of the API
+			let input = new BufferedReader(new InputStreamReader(conn.getInputStream()))
+			let line;
+			let response = '';
+			while ((line = input.readLine()) != null) response += line;
+			input.close();
+			json = JSON.parse(response);
+		}
+		if (json == null || typeof json?.status !== 'number' || json['status'] !== 200 || typeof json['waypoints'] !== 'object') return;
+		// Create shared waypoints
+		fetchWaypoints(json);
 	} catch (err) {}
 }
 
