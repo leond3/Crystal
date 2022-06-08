@@ -20,6 +20,7 @@
 <br /><ul>
   <li>Automatically places and displays waypoints</li>
   <li>Waypoints are synchronized across clients and lobbies</li>
+  <li>Automatically checks for new updates</li>
 </ul>
 </details>
 <details>
