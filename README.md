@@ -35,11 +35,18 @@
 - Odawa<br>
 - Precursor City<br>
 </details>
+<details>
+<summary><b>Commands</b></summary>
+- /crystal<br>
+  Opens the Crystal Settings GUI
+  Aliases:
+  - /cr<br>
+</details>
 
-## Planned
+<!-- ## Planned
 
 - [ ] GUI
-  - Adding toggles for certain features
+  - Adding toggles for certain features -->
 
 ## License
 
