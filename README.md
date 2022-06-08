@@ -11,7 +11,7 @@
 ## Requirements
 
 * [Forge 1.8.9](https://files.minecraftforge.net/net/minecraftforge/forge/index_1.8.9.html)
-* [ChatTriggers 1.8.9](https://www.chattriggers.com/)
+* [ChatTriggers 1.8.9](https://www.chattriggers.com/#download)
 
 ## Features
 

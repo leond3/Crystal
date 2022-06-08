@@ -1,16 +1,18 @@
 import { crystalWaypoint, fetchedWaypoint, nucleusWaypoint } from './Crystal/waypoints';
 import { getCHLocation, getLobby } from './Utilities/location';
 import { Waypoint } from './Utilities/render';
-
+import { get } from './Utilities/network';
 import Settings from './Crystal/settings';
 
-var waypoints = new Map();
+var usingLatestVersion = undefined;
 
+var waypoints = new Map();
 var synchronized = false;
 
 register('renderWorld', onRenderWorld);
 register('step', onSecond).setDelay(1);
 register('worldUnload', onUnloadWorld);
+register('worldLoad', onLoadWorld);
 register('messageSent', onSendMessage);
 register('command', () => Settings.openGUI()).setName('crystal').setAliases('cr');
 
@@ -27,9 +29,63 @@ function onUnloadWorld() {
 	waypoints.clear();
 }
 
+function onLoadWorld() {
+	// Display welcome message
+	/*
+	if (FIRST_TIME_INSTALL_PLACEHOLDER) {
+		const text = [
+			'&6&l&m                                                                ',
+			'&7&lSuccessfully installed &e&lCrystal&7&l!',
+			'&7To open the settings GUI, run &e/crystal&7.',
+			'&6&l&m                                                                ',
+		];
+
+		let message = '';
+		for (var i = 0; i < text.length; i++) message += (i !== text.length - 1 ? text[i] + '\n' : text[i]);
+	
+		ChatLib.chat(message);
+
+		FIRST_TIME_INSTALL_PLACEHOLDER = false;
+	}
+	*/
+	// Update checker
+	if (typeof usingLatestVersion === 'undefined') {
+		new Thread(() => {
+			const version = JSON.parse(FileLib.read('Crystal', 'metadata.json'))?.version;
+
+			let json = get('https://api.github.com/repos/leond3/Crystal/releases/latest');
+			// No internet connection or API down
+			if (typeof json?.tag_name !== 'string') return;
+			// Check if you are using the latest version
+			if (`${json.tag_name}`.endsWith(`${version}`)) {
+				usingLatestVersion = true;
+				return;
+			}
+			usingLatestVersion = false;
+		}).start();
+		return;
+	}
+	// Only display a message when an older version is installed
+	if (usingLatestVersion) return;
+
+	try { ChatLib.deleteChat(1582753002); } catch (err) {}
+		
+	const component = new Message(
+		'&6&l&m                                                                \n',
+		'   &7&lA new update for &e&lCrystal&7&l is available!\n',
+		new TextComponent('   &eClick here ').setHoverValue(`&eClick to download the latest release!`).setClick('open_url', 'https://github.com/leond3/Crystal/releases/latest'),
+		'&7 to open the Github download page.\n',
+		'   &7&oNote: Github releases are not verified by\n',
+		'   &7&o         a trusted ChatTriggers member!\n',
+		'&6&l&m                                                                ',
+	);
+
+	component.setChatLineId(1582753002).chat();
+}
+
 function onSendMessage(message, event) {
 	// Should interrupt any ongoing threads
-	if (message.startsWith('/ct load') || message.startsWith('/chattriggers load') || message.startsWith('/ct reload') || message.startsWith('/chattriggers reload')) syncWaypoints.interrupt();
+	if (message.startsWith('/ct load') || message.startsWith('/chattriggers load') || message.startsWith('/ct reload') || message.startsWith('/chattriggers reload')) syncWaypoints.interrupt();// Does not seem to function, threads will automatically stop when leaving the Crystal Hollows lobby
 }
 
 function onSecond() {
@@ -176,10 +232,6 @@ function onSecond() {
 	}
 }
 
-const BufferedReader = Java.type("java.io.BufferedReader");
-const InputStreamReader = Java.type("java.io.InputStreamReader");
-const URL = Java.type("java.net.URL");
-
 // Requests new waypoints in the lobby
 const syncWaypoints = new Thread(() => {
 	try {
@@ -188,24 +240,9 @@ const syncWaypoints = new Thread(() => {
 		forceUpdateWaypoints(lobby);
 		// Fetches newly created waypoints in the lobby
 		while (getCHLocation().length !== 0) {
-			let conn = new URL('https://forgemodapi.herokuapp.com/crystal/get?lobby=' + lobby).openConnection();
-			conn.setRequestMethod("GET");
-			// Uses long pulling to receive real-time updates
-			conn.setConnectTimeout(30000);
-			conn.setReadTimeout(30000);
-			// Defines the User Agent: https://github.com/ChatTriggers/ChatTriggers/blob/master/src/main/kotlin/com/chattriggers/ctjs/CTJS.kt#L90
-			conn.setRequestProperty("User-Agent", "Mozilla/5.0 (ChatTriggers)");
-			let json = null;
-			if (conn.getResponseCode() >= 200 && conn.getResponseCode() < 300) {
-				// Reads the data (JSON formatted) from the API
-				let input = new BufferedReader(new InputStreamReader(conn.getInputStream()))
-				let line;
-				let response = '';
-				while ((line = input.readLine()) != null) response += line;
-				input.close();
-				json = response.length !== 0 ? JSON.parse(response) : null;
-			}
-			if (!Settings.HollowWaypoints) break;
+			let json = get('https://forgemodapi.herokuapp.com/crystal/get?lobby=' + lobby, true);
+			
+			if (!Settings.HollowWaypoints) break;// End thread if waypoints are toggled off
 			if (json == null || typeof json?.status !== 'number' || json['status'] !== 200 || typeof json['waypoints'] !== 'object') continue;
 			// Create shared waypoints
 			fetchWaypoints(json);
@@ -220,22 +257,8 @@ const syncWaypoints = new Thread(() => {
  */
 function forceUpdateWaypoints(lobby) {
 	try {
-		let conn = new URL('https://forgemodapi.herokuapp.com/crystal/force?lobby=' + lobby).openConnection();
-		conn.setRequestMethod("GET");
-		conn.setConnectTimeout(3000);
-		conn.setReadTimeout(3000);
-		// Defines the User Agent: https://github.com/ChatTriggers/ChatTriggers/blob/master/src/main/kotlin/com/chattriggers/ctjs/CTJS.kt#L90
-		conn.setRequestProperty("User-Agent", "Mozilla/5.0 (ChatTriggers)");
-		let json = null;
-		if (conn.getResponseCode() >= 200 && conn.getResponseCode() < 300) {
-			// Reads the data (JSON formatted) of the API
-			let input = new BufferedReader(new InputStreamReader(conn.getInputStream()))
-			let line;
-			let response = '';
-			while ((line = input.readLine()) != null) response += line;
-			input.close();
-			json = JSON.parse(response);
-		}
+		let json = get('https://forgemodapi.herokuapp.com/crystal/force?lobby=' + lobby);
+		
 		if (json == null || typeof json?.status !== 'number' || json['status'] !== 200 || typeof json['waypoints'] !== 'object') return;
 		// Create shared waypoints
 		fetchWaypoints(json);

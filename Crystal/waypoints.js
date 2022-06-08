@@ -28,10 +28,10 @@ export function nucleusWaypoint() {
 
 /**
  * Crystal Hollows waypoint formatting
- * @param {*} type ID of the waypoint
- * @param {*} x X position of the waypoint (coordinate)
- * @param {*} y Y position of the waypoint (coordinate)
- * @param {*} z Z position of the waypoint (coordinate)
+ * @param {number} type ID of the waypoint
+ * @param {number} x X position of the waypoint (coordinate)
+ * @param {number} y Y position of the waypoint (coordinate)
+ * @param {number} z Z position of the waypoint (coordinate)
  * @returns Crystal Hollows waypoint data
  */
 export function crystalWaypoint(type, x, y, z) {
@@ -54,7 +54,7 @@ export function crystalWaypoint(type, x, y, z) {
 
 /**
  * Creates waypoint data based on the name fetched from the API
- * @param {*} name The name of the waypoint
+ * @param {string} name The name of the waypoint
  * @returns Crystal Hollows waypoint data
  */
 export function fetchedWaypoint(name) {

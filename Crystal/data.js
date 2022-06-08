@@ -3,15 +3,15 @@ import { post } from "../Utilities/network";
 
 /**
  * Builds a class containing all the data used for waypoint rendering
- * @param {*} t Displayed text
- * @param {*} x X position (coordinate)
- * @param {*} y Y position (coordinate)
- * @param {*} z Z position (coordinate)
- * @param {*} r Red value (color)
- * @param {*} g Green value (color)
- * @param {*} b Blue value (color)
- * @param {*} n Nametag box rendering
- * @param {*} d Distance text rendering
+ * @param {string} t Displayed text
+ * @param {number} x X position (coordinate)
+ * @param {number} y Y position (coordinate)
+ * @param {number} z Z position (coordinate)
+ * @param {number} r Red value (color)
+ * @param {number} g Green value (color)
+ * @param {number} b Blue value (color)
+ * @param {boolean} n Nametag box rendering
+ * @param {boolean} d Distance text rendering
  * @returns WaypointData (class)
  */
 export function Data(t, x, y, z, r, g, b, n, d) {
