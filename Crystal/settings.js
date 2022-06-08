@@ -1,5 +1,5 @@
 // https://www.chattriggers.com/modules/v/Vigilance
-import { @Vigilant, @SwitchProperty } from '../../Vigilance/index';
+import { Vigilant, SwitchProperty } from '../../Vigilance/index';
 
 @Vigilant("Crystal")
 class Settings {
