@@ -54,8 +54,8 @@
 
 ## Planned
 
-<!-- - [ ] GUI
-  - Adding toggles for certain features -->
+- [ ] Dragon's Liar
+  - A crystal hollows waypoint
 
 ## License
 

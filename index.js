@@ -4,11 +4,23 @@ import { Waypoint } from './Utilities/render';
 import { get } from './Utilities/network';
 import Settings from './Crystal/settings';
 
+/*
+	Setup module data, currently used for:
+	- First time welcome message
+*/
+var moduleData = {};
+if (!FileLib.exists('Crystal', 'data.json')) FileLib.write('Crystal', 'data.json', '{"firstTime":true}', true);
+try {
+	moduleData = JSON.parse(FileLib.read('Crystal', 'data.json'));
+} catch (err) {}
+
+// Variables
 var usingLatestVersion = undefined;
 
 var waypoints = new Map();
 var synchronized = false;
 
+// Triggers
 register('renderWorld', onRenderWorld);
 register('step', onSecond).setDelay(1);
 register('worldUnload', onUnloadWorld);
@@ -16,6 +28,7 @@ register('worldLoad', onLoadWorld);
 register('messageSent', onSendMessage);
 register('command', () => Settings.openGUI()).setName('crystal').setAliases('cr');
 
+// Functions
 function onRenderWorld() {
 	if (waypoints.size == 0) return;
 
@@ -30,11 +43,11 @@ function onUnloadWorld() {
 }
 
 function onLoadWorld() {
+	const firstTimeInstall = moduleData?.firstTime;
 	/*
 	 Display welcome message
 	*/
-	/*
-	if (FIRST_TIME_INSTALL_PLACEHOLDER) {
+	if (firstTimeInstall) {
 		const text = [
 			'&6&l&m                                                                ',
 			'&7&lSuccessfully installed &e&lCrystal&7&l!',
@@ -47,9 +60,9 @@ function onLoadWorld() {
 	
 		ChatLib.chat(message);
 
-		FIRST_TIME_INSTALL_PLACEHOLDER = false;
+		moduleData.firstTime = false;
+		FileLib.write('Crystal', 'data.json', JSON.stringify(moduleData), true);
 	}
-	*/
 	/*
 	 Update checker
 	*/
@@ -116,38 +129,55 @@ function onSecond() {
 		syncWaypoints.start();
 	}
 
+	/*
+	HYPIXEL NETWORK RULES NOTICE:
+	ARMORSTANDS (ENTITIES), ACTING AS THE NAMETAG FOR NPC's, ARE ONLY SPAWNED IN FOR PLAYERS IF THEY'RE WITHIN ~24 BLOCKS.
+	THE POSITION OF THE ARMORSTAND IS USUALLY USED AS A STATIC POINT (since the NPC is always in the same location),
+	AFTER DETECTION AN OFFSET IS APPLIED AND THE WAYPOINT IS SHOWN IN THE CORRECT LOCATION (usually not even near the npc)
+
+	CHECKING IF THE NPC IS THE LINE OF SIGHT OF THE PLAYER (raycasting) WOULD NOT BE IDEAL:
+	FINDING THE PRECURSOR CITY WOULD PLACE THE PRECURSOR CITY WAYPOINT, FOR WHICH THE 'ROBOT PROFESSOR' IS USED AS A STATIC POINT,
+	THIS MEANS THAT THE WAYPOINT IS NOT CREATED AT THE NPC, SO THE WAYPOINT IS NOT INDICATING WHERE THE ROBOT PROFESSOR IS LOCATED!
+
+	NO ACTIVE BLOCK SCANNING IS OCCURING, BLOCKS ARE ONLY BEING SCANNED ONCE WHEN THE MODULE IS NOT CERTAIN WHERE TO PLACE THE WAYPOINT.
+	SCANNING FOR BLOCKS IN THIS WAY IS MOST LIKELY ALLOWED AS IT IS ALSO USED IN SkyblockAddons (A mod created by a former Hypixel Helper)
+	(See more: https://github.com/BiscuitDevelopment/SkyblockAddons/blob/main/src/main/java/codes/biscuit/skyblockaddons/features/EndstoneProtectorManager.java#L121)
+	*/
+
 	// Waypoint location detection and creation, also sends the waypoint position to the API
 	for (let entity of World.getAllEntities()) {
 		let name = ChatLib.removeFormatting(entity.getName()).toLowerCase().replace(/[^a-z ]/g, '').replace('lv ', '').replace(' kk', '').replace(' km', '').replace(' mm', '').trim();
-		if (name == 'professor robot' && !waypoints.has('Precursor City')) {
+		if (name == 'professor robot' && !waypoints.has('Precursor City') && location == 'lost precursor city') {
 			let data = crystalWaypoint(1, entity.getX(), entity.getY(), entity.getZ());
 			data.postWaypoint();
 			waypoints.set(data.getText(), data);
 			continue;
 		}
-		if (name == 'keeper of lapis' && !waypoints.has('Mines of Divan')) {
-			let data = crystalWaypoint(2, entity.getX(), entity.getY(), entity.getZ());
-			data.postWaypoint();
-			waypoints.set(data.getText(), data);
-			continue;
-		}
-		if (name == 'keeper of gold' && !waypoints.has('Mines of Divan')) {
-			let data = crystalWaypoint(3, entity.getX(), entity.getY(), entity.getZ());
-			data.postWaypoint();
-			waypoints.set(data.getText(), data);
-			continue;
-		}
-		if (name == 'keeper of diamond' && !waypoints.has('Mines of Divan')) {
-			let data = crystalWaypoint(4, entity.getX(), entity.getY(), entity.getZ());
-			data.postWaypoint();
-			waypoints.set(data.getText(), data);
-			continue;
-		}
-		if (name == 'keeper of emerald' && !waypoints.has('Mines of Divan')) {
-			let data = crystalWaypoint(5, entity.getX(), entity.getY(), entity.getZ());
-			data.postWaypoint();
-			waypoints.set(data.getText(), data);
-			continue;
+		if (!waypoints.has('Mines of Divan') && location == 'mines of divan') {
+			if (name == 'keeper of lapis') {
+				let data = crystalWaypoint(2, entity.getX(), entity.getY(), entity.getZ());
+				data.postWaypoint();
+				waypoints.set(data.getText(), data);
+				continue;
+			}
+			if (name == 'keeper of gold') {
+				let data = crystalWaypoint(3, entity.getX(), entity.getY(), entity.getZ());
+				data.postWaypoint();
+				waypoints.set(data.getText(), data);
+				continue;
+			}
+			if (name == 'keeper of diamond') {
+				let data = crystalWaypoint(4, entity.getX(), entity.getY(), entity.getZ());
+				data.postWaypoint();
+				waypoints.set(data.getText(), data);
+				continue;
+			}
+			if (name == 'keeper of emerald') {
+				let data = crystalWaypoint(5, entity.getX(), entity.getY(), entity.getZ());
+				data.postWaypoint();
+				waypoints.set(data.getText(), data);
+				continue;
+			}
 		}
 		if (name == 'odawa' && !waypoints.has('Odawa')) {
 			let data = crystalWaypoint(6, entity.getX(), entity.getY(), entity.getZ());
@@ -161,13 +191,14 @@ function onSecond() {
 			waypoints.set(data.getText(), data);
 			continue;
 		}
+		// Khazad-dûm: No location check to prioritize nametag detection over block scanning
 		if (name == 'bal' && !waypoints.has('Khazad-dum')) {
 			let data = crystalWaypoint(8, entity.getX(), entity.getY(), entity.getZ());
 			data.postWaypoint();
 			waypoints.set(data.getText(), data);
 			continue;
 		}
-		if (name == 'kalhuiki door guardian' && !waypoints.has('Jungle Temple')) {
+		if (name == 'kalhuiki door guardian' && !waypoints.has('Jungle Temple') && location == 'jungle temple') {
 			let data = crystalWaypoint(9, entity.getX(), entity.getY(), entity.getZ());
 			data.postWaypoint();
 			waypoints.set(data.getText(), data);
