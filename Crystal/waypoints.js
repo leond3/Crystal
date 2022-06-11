@@ -49,6 +49,7 @@ export function crystalWaypoint(type, x, y, z) {
     if (type === 12) return Data('Corleone', x, y + 5, z, 85, 255, 85, true, true);
 	if (type === 13) return Data('Forger', x, y + 3, z, 85, 255, 85, true, true);
     if (type === 14) return Data('Key Guardian', x, y + 3, z, 85, 255, 85, true, true);
+    if (type === 15) return Data('Dragon Liar', x - 5, y + 5, z + 5, 255, 255, 85, true, true);
     return Data('Internal Error', x, y, z, 170, 0, 0, false, false);
 }
 
@@ -72,5 +73,6 @@ export function fetchedWaypoint(name) {
     if (name == 'Corleone') return Data('Corleone', 0, 0, 0, 85, 255, 85, true, true);
 	if (name == 'Forger') return Data('Forger', 0, 0, 0, 85, 255, 85, true, true);
     if (name == 'Key Guardian') return Data('Key Guardian', 0, 0, 0, 85, 255, 85, true, true);
+    if (name == 'Dragon Liar') return Data('Dragon Liar', 0, 0, 0, 255, 255, 85, true, true);
     return Data('Internal Error', 0, 0, 0, 170, 0, 0, false, false);
 }
