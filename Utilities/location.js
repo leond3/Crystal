@@ -33,11 +33,11 @@ function getLocation() {
     const title = ChatLib.removeFormatting(Scoreboard.getScoreboardTitle()).replace(/[^A-Z]/g, "");
     if (title.startsWith('SKYBLOCK')) {
         const text = ChatLib.removeFormatting(Scoreboard.getLineByIndex(Scoreboard.getLines().length - 5).getName()).trim();
-        if (text.startsWith('⏣')) return stripSpecial(text).replace(/[-_]/g, ' ').replace(/[^A-z ']/g, '').trim();
+        if (text.startsWith('\u23e3')) return stripSpecial(text).replace(/[-_]/g, ' ').replace(/[^A-z ']/g, '').trim();
         // Unusual scoreboard format, search all existing lines
         for (let lines of Scoreboard.getLines()) {
-            let line = ChatLib.removeFormatting(lines.getLine()).trim();
-            if (line.startsWith('⏣')) return stripSpecial(text).replace(/[-_]/g, ' ').replace(/[^A-z ']/g, '').trim();
+            let line = ChatLib.removeFormatting(lines.getName()).trim();
+            if (line.startsWith('\u23e3')) return stripSpecial(line).replace(/[-_]/g, ' ').replace(/[^A-z ']/g, '').trim();
         }
     }
     return 'None';
