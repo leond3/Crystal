@@ -28,6 +28,7 @@
 <br /><ul>
   <li>Corleone</li>
   <li>Crystal Nucleus</li>
+  <li>Dragon Liar</li>
   <li>Fairy Grotto</li>
   <li>Forger</li>
   <li>Goblin King</li>
@@ -54,8 +55,8 @@
 
 ## Planned
 
-- [ ] Dragon's Liar
-  - A crystal hollows waypoint
+<!-- - [ ] Dragon's Liar
+  - A crystal hollows waypoint -->
 
 ## License
 
