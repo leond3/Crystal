@@ -3,6 +3,7 @@ import { getCHLocation, getLobby } from './Utilities/location';
 import { Waypoint } from './Utilities/render';
 import { get } from './Utilities/network';
 import Settings from './Crystal/settings';
+import Vector from './Utilities/vector';
 
 /*
 	Setup module data, currently used for:
@@ -32,9 +33,10 @@ register('command', () => Settings.openGUI()).setName('crystal').setAliases('cr'
 function onRenderWorld() {
 	if (waypoints.size == 0) return;
 
+	const playerView = new Vector(Player.getRenderX(), Player.getRenderY() + (Player.isSneaking() ? 1.54 : 1.62), Player.getRenderZ());
 	for (let data of waypoints.values()) {
 		// Renders a waypoints according to its parameters
-		Waypoint(data.getText(), data.getX(), data.getY(), data.getZ(), data.getRed(), data.getGreen(), data.getBlue(), data.getBackground(), data.getDistance());
+		Waypoint(data.getText(), playerView, new Vector(data.getX(), data.getY(), data.getZ()), data.getRed(), data.getGreen(), data.getBlue(), data.getBackground(), data.getDistance());
 	}
 }
 
@@ -48,6 +50,7 @@ function onLoadWorld() {
 	 Display welcome message
 	*/
 	if (firstTimeInstall) {
+		// Welcome message
 		const text = [
 			'&6&l&m                                                                ',
 			'&7&lSuccessfully installed &e&lCrystal&7&l!',
@@ -75,11 +78,7 @@ function onLoadWorld() {
 			// No internet connection or API down
 			if (typeof json?.tag_name !== 'string') return;
 			// Check if you are using the latest version
-			if (`${json.tag_name}`.endsWith(`${version}`)) {
-				usingLatestVersion = true;
-				return;
-			}
-			usingLatestVersion = false;
+			usingLatestVersion = `${json.tag_name}`.endsWith(`${version}`) ? true : false;
 		}).start();
 		return;
 	}
@@ -87,7 +86,8 @@ function onLoadWorld() {
 	if (usingLatestVersion) return;
 
 	try { ChatLib.deleteChat(1582753002); } catch (err) {}
-		
+	
+	// Update message
 	const component = new Message(
 		'&6&l&m                                                                \n',
 		'   &7&lA new update for &e&lCrystal&7&l is available!\n',
@@ -211,9 +211,27 @@ function onSecond() {
 			continue;
 		}
 		if (name == 'boss corleone' && !waypoints.has('Corleone')) {
-			let data = crystalWaypoint(12, entity.getX(), entity.getY(), entity.getZ());
-			data.postWaypoint();
-			waypoints.set(data.getText(), data);
+			const x = entity.getX();
+			const y = entity.getY();
+			const z = entity.getZ();
+			/*
+			Check if there is some space above the Boss Corleone,
+			Boss Corleone can spawn randomly throughout the Mithril Deposits
+			and would therefore not always be in the 'Corleone' waypoint location
+			*/
+			let correctLocation = true;
+			for (let shifted = y + 1; shifted < y + 6; shifted++) {
+				let block = World.getBlockAt(x, shifted, z)?.type?.name;
+				if (block !== 'Air') {
+					correctLocation = false;
+					break;
+				}
+			}
+			if (correctLocation) {
+				let data = crystalWaypoint(12, x, y, z);
+				data.postWaypoint();
+				waypoints.set(data.getText(), data);
+			}
 			continue;
 		}
 		if (name == 'forger' && !waypoints.has('Forger')) {
@@ -266,22 +284,42 @@ function onSecond() {
 			}
 		}).start();
 	}
+	if (location === 'dragon lair' && !waypoints.has('Dragon Liar')) {
+		// Player is in the Dragon's Liar, determine the location of the waypoint using snow blocks
+		new Thread(() => {
+			for (var x = Player.getX() - 64; x < Player.getX() + 64; x++) {
+				for (var y = MathLib.clamp(Player.getY() - 64, 64, 124); y < MathLib.clamp(Player.getY() + 64, 128, 188); y++) {
+					for (var z = Player.getZ() - 64; z < Player.getZ() + 64; z++) {
+						let block = World.getBlockAt(x, y, z)?.type?.name;
+						if (block == 'Snow') {
+							let data = crystalWaypoint(15, x, y, z);
+							data.postWaypoint();
+							waypoints.set(data.getText(), data);
+							return;
+						}
+					}
+				}
+			}
+		}).start();
+	}
 }
 
 // Requests new waypoints in the lobby
 const syncWaypoints = new Thread(() => {
 	try {
 		const lobby = getLobby();
-		// Requests all waypoints in the lobby
-		forceUpdateWaypoints(lobby);
-		// Fetches newly created waypoints in the lobby
-		while (getCHLocation().length !== 0) {
-			let json = get('https://forgemodapi.herokuapp.com/crystal/get?lobby=' + lobby, true);
-			
-			if (!Settings.HollowWaypoints) break;// End thread if waypoints are toggled off
-			if (json == null || typeof json?.status !== 'number' || json['status'] !== 200 || typeof json['waypoints'] !== 'object') continue;
-			// Create shared waypoints
-			fetchWaypoints(json);
+		if (lobby.length != 0) {
+			// Requests all waypoints in the lobby
+			forceUpdateWaypoints(lobby);
+			// Fetches newly created waypoints in the lobby
+			while (getCHLocation().length !== 0) {
+				let json = get('https://forgemodapi.herokuapp.com/crystal/get?lobby=' + lobby, true);
+				
+				if (!Settings.HollowWaypoints) break;// End thread if waypoints are toggled off
+				if (json == null || typeof json?.status !== 'number' || json['status'] !== 200 || typeof json['waypoints'] !== 'object') continue;
+				// Create shared waypoints
+				fetchWaypoints(json);
+			}
 		}
 	} catch (err) {} finally {
 		synchronized = false;
