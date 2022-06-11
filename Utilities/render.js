@@ -20,7 +20,7 @@ export function Waypoint(text, playerView, waypointPos, red, green, blue, backgr
 	const dist = vec.magnitude();
 	
 	// Fixes a bug with Tessellator not drawing correctly when the waypoint is far away
-	const renderPos = dist > 108 ? waypointPos.add(vec.normalise().multiply(108)) : waypointPos;
+	const renderPos = dist > 108 ? playerView.add(vec.normalise().multiply(108)) : waypointPos;
 	const scale = dist > 108 ? 0.4 : 0.04 * (dist / 12 + 1);
 
     Tessellator.drawString(text, renderPos.getX(), renderPos.getY(), renderPos.getZ(), (MathLib.clamp(red, 0, 255) << 16) + (MathLib.clamp(green, 0, 255) << 8) + (MathLib.clamp(blue, 0, 255)), background, scale, false);
