@@ -70,6 +70,8 @@ class WaypointData {
      * Sends the waypoint's name and position in the lobby to the API
      */
     postWaypoint() {
-        post('https://forgemodapi.herokuapp.com/crystal/post', `name=${this.getText()}&x=${this.getX()}&y=${this.getY()}&z=${this.getZ()}&lobby=${getLobby()}`);
+        const lobby = getLobby();
+        if (lobby.length == 0) return;
+        post('https://forgemodapi.herokuapp.com/crystal/post', `name=${this.getText()}&x=${this.getX()}&y=${this.getY()}&z=${this.getZ()}&lobby=${lobby}`);
     }
 }
