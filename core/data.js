@@ -1,5 +1,5 @@
-import { getLobby } from "../Utilities/location";
-import { post } from "../Utilities/network";
+import { getLobby } from '../utilities/location';
+import request from '../../requestV2/index';
 
 /**
  * Builds a class containing all the data used for waypoint rendering
@@ -71,7 +71,24 @@ class WaypointData {
      */
     postWaypoint() {
         const lobby = getLobby();
-        if (lobby.length == 0) return;
-        post('https://forgemodapi.herokuapp.com/crystal/post', `name=${this.getText()}&x=${this.getX()}&y=${this.getY()}&z=${this.getZ()}&lobby=${lobby}`);
+        if (lobby.length > 0) {
+            request({
+				url: 'https://hehoonapi.hehoon.repl.co/v1/waypoints',
+				method: 'POST',
+				headers: {
+					'User-Agent': 'Mozilla/5.0 (ChatTriggers)'
+				},
+                body: {
+                    id: lobby,
+                    x: Math.floor(this.getX()),
+                    y: Math.floor(this.getY()),
+                    z: Math.floor(this.getZ()),
+                    name: this.getText()
+                },
+				timeout: 30000
+			}).catch(err => {
+                return;
+            })
+        }
     }
 }

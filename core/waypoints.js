@@ -1,4 +1,4 @@
-import Vector from "../Utilities/vector";
+import Vector from "../utilities/vector";
 import { Data } from "./data";
 
 // Entrances to the Crystal Nucleus
@@ -11,9 +11,9 @@ const nucleusLocations = [new Vector(564.5, 121.5, 564.5), new Vector(564.5, 120
 export function nucleusWaypoint() {    
     const playerPos = new Vector(Player.getX(), Player.getY(), Player.getZ());
 
-    var closest = 999;
-    var vector = null;
-    for (var i = 0; i < nucleusLocations.length; i++) {
+    let closest = 999;
+    let vector = null;
+    for (let i = 0; i < nucleusLocations.length; i++) {
         let vec = nucleusLocations[i];
         let dist = vec.subtract(playerPos).magnitude();
         if (dist < closest) {
@@ -50,7 +50,7 @@ export function crystalWaypoint(type, x, y, z) {
 	if (type === 13) return Data('Forger', x, y + 3, z, 85, 255, 85, true, true);
     if (type === 14) return Data('Key Guardian', x, y + 3, z, 85, 255, 85, true, true);
     if (type === 15) return Data('Dragon Liar', x - 5, y + 5, z + 5, 255, 255, 85, true, true);
-    return Data('Internal Error', x, y, z, 170, 0, 0, false, false);
+    return Data('', x, y, z, 170, 0, 0, false, false);
 }
 
 /**

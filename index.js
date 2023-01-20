@@ -1,32 +1,31 @@
-import { crystalWaypoint, fetchedWaypoint, nucleusWaypoint } from './Crystal/waypoints';
-import { getCHLocation, getLobby } from './Utilities/location';
-import { Waypoint } from './Utilities/render';
-import { get } from './Utilities/network';
-import Settings from './Crystal/settings';
-import Vector from './Utilities/vector';
+import { crystalWaypoint, fetchedWaypoint, nucleusWaypoint } from './core/waypoints';
+import { getCHLocation, getLobby } from './utilities/location';
+import { renderWaypoint } from './utilities/render';
+import request from '../requestV2/index';
+import Settings from './core/settings';
+import Vector from './utilities/vector';
 
 /*
 	Setup module data, currently used for:
 	- First time welcome message
 */
-var moduleData = {};
+let moduleData = {};
 if (!FileLib.exists('Crystal', 'data.json')) FileLib.write('Crystal', 'data.json', '{"firstTime":true}', true);
 try {
 	moduleData = JSON.parse(FileLib.read('Crystal', 'data.json'));
 } catch (err) {}
 
 // Variables
-var usingLatestVersion = undefined;
+let usingLatestVersion = undefined;
 
-var waypoints = new Map();
-var synchronized = false;
+let waypoints = new Map();
+let pulling = false;
 
 // Triggers
 register('renderWorld', onRenderWorld);
 register('step', onSecond).setDelay(1);
 register('worldUnload', onUnloadWorld);
 register('worldLoad', onLoadWorld);
-register('messageSent', onSendMessage);
 register('command', () => Settings.openGUI()).setName('crystal').setAliases('cr');
 
 // Functions
@@ -36,7 +35,7 @@ function onRenderWorld() {
 	const playerView = new Vector(Player.getRenderX(), Player.getRenderY() + (Player.isSneaking() ? 1.54 : 1.62), Player.getRenderZ());
 	for (let data of waypoints.values()) {
 		// Renders a waypoints according to its parameters
-		Waypoint(data.getText(), playerView, new Vector(data.getX(), data.getY(), data.getZ()), data.getRed(), data.getGreen(), data.getBlue(), data.getBackground(), data.getDistance());
+		renderWaypoint(data.getText(), playerView, new Vector(data.getX(), data.getY(), data.getZ()), data.getRed(), data.getGreen(), data.getBlue(), data.getBackground(), data.getDistance());
 	}
 }
 
@@ -45,11 +44,10 @@ function onUnloadWorld() {
 }
 
 function onLoadWorld() {
-	const firstTimeInstall = moduleData?.firstTime;
 	/*
 	 Display welcome message
 	*/
-	if (firstTimeInstall) {
+	if (moduleData.firstTime) {
 		// Welcome message
 		const text = [
 			'&6&l&m                                                                ',
@@ -59,7 +57,9 @@ function onLoadWorld() {
 		];
 
 		let message = '';
-		for (var i = 0; i < text.length; i++) message += (i !== text.length - 1 ? text[i] + '\n' : text[i]);
+		for (let i = 0; i < text.length; i++) {
+			message += (i !== text.length - 1 ? text[i] + '\n' : text[i]);
+		}
 	
 		ChatLib.chat(message);
 
@@ -69,23 +69,36 @@ function onLoadWorld() {
 	/*
 	 Update checker
 	*/
-	if (!Settings.UpdateChecker) return;
+	if (!Settings.UpdateChecker) {
+		return;
+	}
 	if (typeof usingLatestVersion === 'undefined') {
-		new Thread(() => {
-			const version = JSON.parse(FileLib.read('Crystal', 'metadata.json'))?.version;
+		const version = JSON.parse(FileLib.read('Crystal', 'metadata.json'))?.version;
 
-			let json = get('https://api.github.com/repos/leond3/Crystal/releases/latest');
-			// No internet connection or API down
-			if (typeof json?.tag_name !== 'string') return;
-			// Check if you are using the latest version
-			usingLatestVersion = `${json.tag_name}`.endsWith(`${version}`) ? true : false;
-		}).start();
+		request({
+			url: 'https://api.github.com/repos/leond3/Crystal/releases/latest',
+			method: 'GET',
+			headers: {
+				'User-Agent': 'Mozilla/5.0 (ChatTriggers)'
+			},
+			timeout: 3000,
+			json: true
+		}).then(response => {
+			usingLatestVersion = `${response?.tag_name}`.endsWith(`${version}`) ? true : false;
+		}).catch(err => {
+			return;
+		});
 		return;
 	}
 	// Only display a message when an older version is installed
 	if (usingLatestVersion) return;
 
-	try { ChatLib.deleteChat(1582753002); } catch (err) {}
+	try {
+		// Same chat id should get replaced by default
+		// Removing the id from chat anyways to make sure it is removed
+		ChatLib.deleteChat(1582753002);
+	} catch (err) {
+	}
 	
 	// Update message
 	const component = new Message(
@@ -101,14 +114,19 @@ function onLoadWorld() {
 	component.setChatLineId(1582753002).chat();
 }
 
-function onSendMessage(message, event) {
-	// Should interrupt any ongoing threads
-	if (message.startsWith('/ct load') || message.startsWith('/chattriggers load') || message.startsWith('/ct reload') || message.startsWith('/chattriggers reload')) syncWaypoints.interrupt();// Does not seem to function, threads will automatically stop when leaving the Crystal Hollows lobby
-}
-
 function onSecond() {
-	const location = getCHLocation();
-	if (location.length == 0) return;
+	const location = getCHLocation().toLowerCase();
+	if (location.length == 0) {
+		// No crystal hollow location found
+		return;
+	}
+
+	// Toggle for Crystal Hollows waypoints
+	if (!Settings.HollowWaypoints) {
+		if (waypoints.size > Settings.NucleusWaypoint ? 1 : 0) {
+			waypoints.clear();
+		}
+	}
 
 	// Display the nearest entrance to the Crystal Nucleus
 	if (Settings.NucleusWaypoint && location !== 'crystal nucleus') {
@@ -117,29 +135,24 @@ function onSecond() {
 		waypoints.delete('nucleus');
 	}
 
-	// Toggle for Crystal Hollows waypoints
-	if (!Settings.HollowWaypoints) {
-		if (waypoints.size > Settings.NucleusWaypoint ? 1 : 0) waypoints.clear();
-		return;
-	}
-
 	// Requests new waypoints in the lobby
-	if (!synchronized) {
-		synchronized = true;
-		syncWaypoints.start();
+	if (!pulling && Settings.HollowWaypoints) {
+		fetchWaypoints();
 	}
 
 	/*
 	HYPIXEL NETWORK RULES NOTICE:
-	ARMORSTANDS (ENTITIES), ACTING AS THE NAMETAG FOR NPC's, ARE ONLY SPAWNED IN FOR PLAYERS IF THEY'RE WITHIN ~24 BLOCKS.
+	ARMORSTANDS (ENTITIES), ACTING AS THE NAMETAG FOR NPC's, ARE ONLY SPAWNED IN FOR PLAYERS IF THEY'RE WITHIN ~30 BLOCKS.
 	THE POSITION OF THE ARMORSTAND IS USUALLY USED AS A STATIC POINT (since the NPC is always in the same location),
 	AFTER DETECTION AN OFFSET IS APPLIED AND THE WAYPOINT IS SHOWN IN THE CORRECT LOCATION (usually not even near the npc)
 
 	CHECKING IF THE NPC IS THE LINE OF SIGHT OF THE PLAYER (raycasting) WOULD NOT BE IDEAL:
 	FINDING THE PRECURSOR CITY WOULD PLACE THE PRECURSOR CITY WAYPOINT, FOR WHICH THE 'ROBOT PROFESSOR' IS USED AS A STATIC POINT,
 	THIS MEANS THAT THE WAYPOINT IS NOT CREATED AT THE NPC, SO THE WAYPOINT IS NOT INDICATING WHERE THE ROBOT PROFESSOR IS LOCATED!
+	(THE PRECURSOR CITY WAYPOINT IS OFFSET FROM THE ROBOT PROFESSOR NPC LOCATION)
 
-	NO ACTIVE BLOCK SCANNING IS OCCURING, BLOCKS ARE ONLY BEING SCANNED ONCE WHEN THE MODULE IS NOT CERTAIN WHERE TO PLACE THE WAYPOINT.
+	NO ACTIVE BLOCK SCANNING IS OCCURING, BLOCKS ARE ONLY BEING SCANNED ONCE WHEN THE MODULE IS NOT CERTAIN WHERE TO PLACE THE WAYPOINT:
+	FOR EXAMPLE; WHEN THE MODULE FOUND A STRUCTURE BUT IS UNCERTAIN WHERE THE CENTER OF A STRUCTURE IS LOCATED!
 	SCANNING FOR BLOCKS IN THIS WAY IS MOST LIKELY ALLOWED AS IT IS ALSO USED IN SkyblockAddons (A mod created by a former Hypixel Helper)
 	(See more: https://github.com/BiscuitDevelopment/SkyblockAddons/blob/main/src/main/java/codes/biscuit/skyblockaddons/features/EndstoneProtectorManager.java#L121)
 	*/
@@ -220,7 +233,7 @@ function onSecond() {
 			and would therefore not always be in the 'Corleone' waypoint location
 			*/
 			let correctLocation = true;
-			for (let shifted = y + 1; shifted < y + 6; shifted++) {
+			for (let shifted = y + 1; shifted < y + 10; shifted++) {
 				let block = World.getBlockAt(x, shifted, z)?.type?.name;
 				if (block !== 'Air') {
 					correctLocation = false;
@@ -251,9 +264,9 @@ function onSecond() {
 	if (location === 'khazad dum' && !waypoints.has('Khazad-dum')) {
 		// Bal is not in the arena, determine waypoint location with Topaz Crystal
 		new Thread(() => {
-			for (var x = Player.getX() - 64; x < Player.getX() + 64; x++) {
-				for (var y = MathLib.clamp(Player.getY() - 16, 31, 63); y < Player.getY() + 32; y++) {
-					for (var z = Player.getZ() - 64; z < Player.getZ() + 64; z++) {
+			for (let x = Player.getX() - 64; x < Player.getX() + 64; x++) {
+				for (let y = MathLib.clamp(Player.getY() - 16, 31, 63); y < Player.getY() + 32; y++) {
+					for (let z = Player.getZ() - 64; z < Player.getZ() + 64; z++) {
 						let block = World.getBlockAt(x, y, z)?.type?.name;
 						if (block == 'Barrier') {
 							let data = crystalWaypoint(8, x, y, z + 20);
@@ -269,9 +282,9 @@ function onSecond() {
 	if (location === 'goblin queen' && !waypoints.has('Goblin Queen')) {
 		// Player is in the Goblin Queen's Den, determine waypoint location with Amber Crystal
 		new Thread(() => {
-			for (var x = Player.getX() - 64; x < Player.getX() + 64; x++) {
-				for (var y = MathLib.clamp(Player.getY() - 64, 64, 124); y < MathLib.clamp(Player.getY() + 64, 128, 188); y++) {
-					for (var z = Player.getZ() - 64; z < Player.getZ() + 64; z++) {
+			for (let x = Player.getX() - 64; x < Player.getX() + 64; x++) {
+				for (let y = MathLib.clamp(Player.getY() - 64, 64, 124); y < MathLib.clamp(Player.getY() + 64, 128, 188); y++) {
+					for (let z = Player.getZ() - 64; z < Player.getZ() + 64; z++) {
 						let block = World.getBlockAt(x, y, z)?.type?.name;
 						if (block == 'Barrier') {
 							let data = crystalWaypoint(11, x, y, z);
@@ -287,9 +300,9 @@ function onSecond() {
 	if (location === 'dragon lair' && !waypoints.has('Dragon Liar')) {
 		// Player is in the Dragon's Liar, determine the location of the waypoint using snow blocks
 		new Thread(() => {
-			for (var x = Player.getX() - 64; x < Player.getX() + 64; x++) {
-				for (var y = MathLib.clamp(Player.getY() - 64, 64, 124); y < MathLib.clamp(Player.getY() + 64, 128, 188); y++) {
-					for (var z = Player.getZ() - 64; z < Player.getZ() + 64; z++) {
+			for (let x = Player.getX() - 64; x < Player.getX() + 64; x++) {
+				for (let y = MathLib.clamp(Player.getY() - 64, 64, 124); y < MathLib.clamp(Player.getY() + 64, 128, 188); y++) {
+					for (let z = Player.getZ() - 64; z < Player.getZ() + 64; z++) {
 						let block = World.getBlockAt(x, y, z)?.type?.name;
 						if (block == 'Snow') {
 							let data = crystalWaypoint(15, x, y, z);
@@ -305,58 +318,42 @@ function onSecond() {
 }
 
 // Requests new waypoints in the lobby
-const syncWaypoints = new Thread(() => {
+function fetchWaypoints() {
 	try {
 		const lobby = getLobby();
-		if (lobby.length != 0) {
-			// Requests all waypoints in the lobby
-			forceUpdateWaypoints(lobby);
+		if (lobby.length > 0) {
+			pulling = true;
 			// Fetches newly created waypoints in the lobby
-			while (getCHLocation().length !== 0) {
-				let json = get('https://forgemodapi.herokuapp.com/crystal/get?lobby=' + lobby, true);
+			request({
+				url: `https://hehoonapi.hehoon.repl.co/v1/waypoints?id=${lobby}`,
+				method: 'GET',
+				headers: {
+					'User-Agent': 'Mozilla/5.0 (ChatTriggers)',
+				},
+				timeout: 100000,
+				json: true
+			}).then(response => {
+				if (response?.waypoints) {
+					// Create shared waypoints
+					response.waypoints?.forEach(waypoint => {
+						// Creating the waypoint
+						let data = fetchedWaypoint(waypoint.name);
+						data.setX(waypoint.x);
+						data.setY(waypoint.y);
+						data.setZ(waypoint.z);
 				
-				if (!Settings.HollowWaypoints) break;// End thread if waypoints are toggled off
-				if (json == null || typeof json?.status !== 'number' || json['status'] !== 200 || typeof json['waypoints'] !== 'object') continue;
-				// Create shared waypoints
-				fetchWaypoints(json);
-			}
+						// Adding the waypoint to the render list, unless it is already on there
+						if (data.getText().length > 0 && !waypoints.has(data.getText())) {
+							waypoints.set(data.getText(), data);
+						}
+					});
+				}
+				pulling = false;
+			}).catch(err => {
+				pulling = false;
+			});
 		}
-	} catch (err) {} finally {
-		synchronized = false;
+	} catch (err) {
+		pulling = false;
 	}
-});
-
-/**
- * Requests all waypoints in the lobby
- */
-function forceUpdateWaypoints(lobby) {
-	try {
-		let json = get('https://forgemodapi.herokuapp.com/crystal/force?lobby=' + lobby);
-		
-		if (json == null || typeof json?.status !== 'number' || json['status'] !== 200 || typeof json['waypoints'] !== 'object') return;
-		// Create shared waypoints
-		fetchWaypoints(json);
-	} catch (err) {}
-}
-
-function fetchWaypoints(json) {
-	Object.keys(json['waypoints']).forEach(waypoint => {
-		// Name of the waypoint
-		let name = waypoint;
-		if (typeof name === 'string') {
-			// Position of the waypoint
-			let x = Number(json['waypoints'][name]['x']);
-			let y = Number(json['waypoints'][name]['y']);
-			let z = Number(json['waypoints'][name]['z']);
-			if (typeof x === 'number' && typeof y === 'number' && typeof z === 'number') {
-				// Creating the waypoint
-				let data = fetchedWaypoint(name);
-				data.setX(x);
-				data.setY(y);
-				data.setZ(z);
-				// Adds the waypoint to the render list, unless it is already on there
-				if (data.getText() !== 'Internal Error' && !waypoints.has(data.getText())) waypoints.set(data.getText(), data);
-			}
-		}
-	});
 }

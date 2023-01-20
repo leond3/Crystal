@@ -6,7 +6,7 @@ export function getLobby() {
     const title = ChatLib.removeFormatting(Scoreboard.getScoreboardTitle()).replace(/[^A-Z]/g, "");
     if (title.startsWith('SKYBLOCK')) {
         const text = ChatLib.removeFormatting(Scoreboard.getLineByIndex(Scoreboard.getLines().length - 1).getName());
-        const lobby = text.trim().split(' ').pop().replace(/[^A-z0-9]/g, "");
+        const lobby = text.trim().split(' ').pop().replace(/[^A-Za-z0-9]/g, "");
         if (lobby.toLowerCase().startsWith('m')) return lobby;
         // Scoreboard is malformed, search for lobby number in TAB
         for (let name of TabList.getNames()) {
@@ -21,23 +21,23 @@ export function getLobby() {
 export function getCHLocation() {
     const location = getLocation();
     const loc = location.toLowerCase().replace("'s", "").replace("'", "");
-    for (var i = 0; i < locations.length; i++) {
+    for (let i = 0; i < locations.length; i++) {
         if (loc.includes(locations[i])) return locations[i];
     }
+    // Filter out 'Jungle Island' in The Park
     if (loc.includes('jungle') && !loc.endsWith('island')) return location;
     return '';
 }
 
 // Gets the skyblock location of the player from the scoreboard
 function getLocation() {
-    const title = ChatLib.removeFormatting(Scoreboard.getScoreboardTitle()).replace(/[^A-Z]/g, "");
-    if (title.startsWith('SKYBLOCK')) {
-        const text = ChatLib.removeFormatting(Scoreboard.getLineByIndex(Scoreboard.getLines().length - 5).getName()).trim();
-        if (text.startsWith('\u23e3')) return stripSpecial(text).replace(/[-_]/g, ' ').replace(/[^A-z ']/g, '').trim();
+    if (ChatLib.removeFormatting(Scoreboard.getScoreboardTitle()).replace(/[^A-Z]/g, "").startsWith('SKYBLOCK')) {
         // Unusual scoreboard format, search all existing lines
         for (let lines of Scoreboard.getLines()) {
             let line = ChatLib.removeFormatting(lines.getName()).trim();
-            if (line.startsWith('\u23e3')) return stripSpecial(line).replace(/[-_]/g, ' ').replace(/[^A-z ']/g, '').trim();
+            if (line.startsWith('\u23e3')) {// unicode 23e3 = location symbol
+                return stripSpecial(line).replace(/[-_]/g, ' ').replace(/[^A-z ']/g, '').trim();
+            }
         }
     }
     return 'None';
