@@ -2,7 +2,7 @@
   "name": "Crystal",
   "creator": "leond3",
   "description": "An extension for the Crystal Hollows in Hypixel SkyBlock",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "entry": "index.js",
   "requires": [
     "Vigilance",

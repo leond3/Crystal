@@ -333,7 +333,7 @@ function fetchWaypoints() {
 				timeout: 100000,
 				json: true
 			}).then(response => {
-				if (response?.waypoints) {
+				if (response?.waypoints && getCHLocation().length > 0) {
 					// Create shared waypoints
 					response.waypoints?.forEach(waypoint => {
 						// Creating the waypoint
